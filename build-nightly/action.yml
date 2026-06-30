@@ -23,9 +23,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Install the mold linker
-      uses: rui314/setup-mold@9c9c13bf4c3f1adef0cc596abc155580bcb04444 # v1
-
     - name: Compile and install `yazi-fm` from source (cached)
       uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3.4.0
       with:
