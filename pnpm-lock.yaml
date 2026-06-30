@@ -208,7 +208,7 @@ importers:
   .:
     devDependencies:
       oxfmt:
-        specifier: ^0.56.0
+        specifier: 0.56.0
         version: 0.56.0
 
 packages:
