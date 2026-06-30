@@ -3,8 +3,8 @@ name: "Build pinned Yazi nightly"
 description: >-
   Issue:
 
-  Yazi only ever publishes nightly under a single moving `nightly` tag whose old assets are
-  deleted, so it can't be pinned by tag.
+  Yazi only ever publishes nightly under a single moving `nightly` tag whose old assets are deleted,
+  so it can't be pinned by tag.
 
   Solution:
 
