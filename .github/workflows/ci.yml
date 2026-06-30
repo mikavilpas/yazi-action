@@ -35,7 +35,20 @@ jobs:
           commit: ${{ env.YAZI_NIGHTLY_COMMIT }}
       - name: Verify Yazi and Ya are available
         run: |
-          short="$(printf '%s' "${{ env.YAZI_NIGHTLY_COMMIT }}" | cut -c1-8)"
+          which yazi || {
+            echo "yazi not found in PATH"
+            exit 1
+          }
+          which ya || {
+            echo "ya not found in PATH"
+            exit 1
+          }
+          yazi --version
+          ya --version
+
+          # Yazi embeds the 7-character git short hash in `--version`
+          # (e.g. "Version: 26.5.6 (21550a7 2026-06-30)"), so match 7 chars.
+          short="$(printf '%s' "${{ env.YAZI_NIGHTLY_COMMIT }}" | cut -c1-7)"
           yazi --version | grep "$short"
           ya --version | grep "$short"
 
