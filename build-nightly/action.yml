@@ -12,9 +12,8 @@ description: >-
   cannot drift between CI runs. Renovate can be used to bump the nightly commit in a controlled
   manner, allowing for reproducible builds.
 
-  This action builds the pinned nightly once and uploads it as a workflow artifact. Use the
-  companion `restore-nightly` action to download and extract it in jobs that need it, instead of
-  rebuilding it on a cache miss.
+  Produces the `yazi` and `ya` executables and adds them to the `PATH` for subsequent steps in the
+  workflow.
 
 inputs:
   commit:
