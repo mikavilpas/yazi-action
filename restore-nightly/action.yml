@@ -1,0 +1,83 @@
+---
+name: "Restore a previously built pinned Yazi nightly"
+description: >-
+  Download and extract the pinned Yazi nightly artifact published by the companion `build-nightly`
+  action, adding `yazi` and `ya` to the `PATH` so jobs can use the pinned build without rebuilding
+  it.
+
+  Because the artifact is build-local (see `build-nightly`), this is meant for other jobs of the
+  same workflow run. If no matching artifact exists, or the extracted Yazi does not report the
+  expected commit, the action fails loudly rather than silently testing the wrong build.
+
+inputs:
+  artifact-name:
+    description: "Name of the workflow artifact to download the build from."
+    required: false
+    default: yazi-nightly
+  commit:
+    description:
+      "The expected https://github.com/sxyazi/yazi commit. The extracted Yazi is asserted to report
+      this commit, so a mismatched or stale artifact fails loudly instead of being tested silently."
+    required: true
+
+outputs:
+  prefix:
+    description: "Install prefix of the extracted Yazi (binaries at <prefix>/bin/{yazi,ya})."
+    value: ${{ steps.config.outputs.prefix }}
+  short-commit:
+    description: "Short commit of the extracted Yazi (first 7 characters of the commit hash)."
+    value: ${{ steps.extract.outputs.short-commit }}
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve install prefix and artifact name
+      id: config
+      shell: bash
+      env:
+        ARTIFACT_NAME: ${{ inputs.artifact-name }}
+        RUNNER_ARCH: ${{ runner.arch }}
+      run: |
+        # Must match the prefix used by `build-nightly` so the binaries land
+        # where they expect their relative paths to be.
+        echo "prefix=$HOME/.cargo-install/yazi-build" >> "$GITHUB_OUTPUT"
+        echo "artifact-name=${ARTIFACT_NAME}-${RUNNER_ARCH}" >> "$GITHUB_OUTPUT"
+
+    - name: Download pinned Yazi nightly
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        name: ${{ steps.config.outputs.artifact-name }}
+        path: ${{ runner.temp }}/yazi-nightly-artifact
+
+    - name: Extract pinned Yazi nightly
+      id: extract
+      shell: bash
+      env:
+        YAZI_COMMIT: ${{ inputs.commit }}
+        YAZI_PREFIX: ${{ steps.config.outputs.prefix }}
+        ARTIFACT_DIR: ${{ runner.temp }}/yazi-nightly-artifact
+      run: |
+        mkdir -p "$YAZI_PREFIX"
+        tar -xzf "$ARTIFACT_DIR/yazi-nightly.tar.gz" -C "$YAZI_PREFIX"
+        "$YAZI_PREFIX/bin/yazi" --version
+        "$YAZI_PREFIX/bin/ya" --version
+
+        # Assert the extracted Yazi matches the given commit, so a mismatched or
+        # stale artifact fails loudly instead of being tested silently.
+        short="$(printf '%s' "$YAZI_COMMIT" | cut -c1-7)"
+        "$YAZI_PREFIX/bin/yazi" --version | grep --quiet "$short" || {
+          echo "Extracted Yazi does not report the expected commit $YAZI_COMMIT (looked for $short)"
+          exit 1
+        }
+        "$YAZI_PREFIX/bin/ya" --version | grep --quiet "$short" || {
+          echo "Extracted Ya does not report the expected commit $YAZI_COMMIT (looked for $short)"
+          exit 1
+        }
+        echo "short-commit=$short" >> "$GITHUB_OUTPUT"
+
+    - name: Add Yazi nightly to PATH
+      shell: bash
+      env:
+        YAZI_PREFIX: ${{ steps.config.outputs.prefix }}
+      run: | # zizmor: ignore[github-env]
+        echo "$YAZI_PREFIX/bin/" >> "$GITHUB_PATH"
