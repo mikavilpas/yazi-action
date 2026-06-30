@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 env:
-  # renovate: datasource=git-refs-master packageName=https://github.com/sxyazi/yazi
+  # renovate: datasource=git-refs packageName=https://github.com/sxyazi/yazi
   YAZI_NIGHTLY_COMMIT: 21550a7eb5086ba34f8eabf8aaab85f601d34a74
 
 jobs:
