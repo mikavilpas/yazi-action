@@ -17,6 +17,10 @@ jobs:
   build-nightly:
     name: Build pinned Yazi and Ya nightly (${{ matrix.runner }})
     strategy:
+      # the yazi build is a ~5min operation. If some check fails after the
+      # build, we don't want to waste time rebuilding it just to fix the
+      # checks.
+      fail-fast: false
       matrix:
         runner:
           - ubuntu-24.04
