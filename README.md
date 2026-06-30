@@ -2,6 +2,17 @@
 
 This repository provides reusable GitHub Actions related to Yazi. They can be used freely.
 
+## CI Runner Architecture support
+
+Supported operating systems and architectures for all actions:
+
+- [`ubuntu-24.04`](https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md)
+  (x86_64)
+- [`ubuntu-24.04-arm`](https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Arm64-Readme.md)
+  (arm64)
+
+Everything is tested on both architectures to maintain compatibility.
+
 ## [build-nightly](build-nightly/action.yml)
 
 [build-nightly](build-nightly/action.yml) compiles and caches yazi and ya nightly builds based on a
