@@ -15,14 +15,41 @@ description: >-
   Produces the `yazi` and `ya` executables and adds them to the `PATH` for subsequent steps in the
   workflow.
 
+  This action also uploads the build as a workflow artifact. Use the companion `restore-nightly`
+  action to download and extract it in other jobs of the same run, instead of rebuilding it there.
+
 inputs:
   commit:
     description: "The https://github.com/sxyazi/yazi/ commit (on the main branch) to build."
     required: true
+  artifact-name:
+    description: "Name of the workflow artifact to publish the build under."
+    required: false
+    default: yazi-nightly
+
+outputs:
+  prefix:
+    description: "Install prefix of the built Yazi (binaries at <prefix>/bin/{yazi,ya})."
+    value: ${{ steps.config.outputs.prefix }}
+  short-commit:
+    description: "Short commit of the built Yazi (first 7 characters of the commit hash)."
+    value: ${{ steps.verify.outputs.short-commit }}
 
 runs:
   using: composite
   steps:
+    - name: Resolve install prefix and artifact name
+      id: config
+      shell: bash
+      env:
+        ARTIFACT_NAME: ${{ inputs.artifact-name }}
+        RUNNER_ARCH: ${{ runner.arch }}
+      run: |
+        # `baptiste0928/cargo-install` installs to `$HOME/.cargo-install/<crate>`
+        # (see its install.ts), so the `yazi-build` crate lands here.
+        echo "prefix=$HOME/.cargo-install/yazi-build" >> "$GITHUB_OUTPUT"
+        echo "artifact-name=${ARTIFACT_NAME}-${RUNNER_ARCH}" >> "$GITHUB_OUTPUT"
+
     - name: Compile and install `yazi-fm` from source (cached)
       uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3.4.0
       with:
@@ -35,3 +62,39 @@ runs:
         git: https://github.com/sxyazi/yazi
         commit: ${{ inputs.commit }}
         # tag: ${{ matrix.yazi-version.tag }}
+
+    - name: Verify the pinned Yazi nightly
+      id: verify
+      shell: bash
+      env:
+        YAZI_COMMIT: ${{ inputs.commit }}
+      run: |
+        # Yazi embeds the 7-character git short hash in `--version`
+        # (e.g. "Version: 26.5.6 (21550a7 2026-06-30)"), so match 7 chars.
+        short="$(printf '%s' "$YAZI_COMMIT" | cut -c1-7)"
+        yazi --version
+        ya --version
+        yazi --version | grep --quiet "$short" || {
+          echo "Built Yazi does not report the pinned commit $YAZI_COMMIT (looked for $short)"
+          exit 1
+        }
+        ya --version | grep --quiet "$short" || {
+          echo "Built Ya does not report the pinned commit $YAZI_COMMIT (looked for $short)"
+          exit 1
+        }
+        echo "short-commit=$short" >> "$GITHUB_OUTPUT"
+
+    - name: Package Yazi nightly
+      shell: bash
+      env:
+        YAZI_PREFIX: ${{ steps.config.outputs.prefix }}
+      run: tar -czf yazi-nightly.tar.gz -C "$YAZI_PREFIX" .
+
+    - name: Upload Yazi nightly artifact
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: ${{ steps.config.outputs.artifact-name }}
+        path: yazi-nightly.tar.gz
+        # Build-local: only needs to outlive the run that produced it, so other
+        # jobs in the same run can `restore-nightly` it.
+        retention-days: 1
