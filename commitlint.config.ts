@@ -1,5 +1,5 @@
-import type { UserConfig } from "@commitlint/types";
-import { RuleConfigSeverity } from "@commitlint/types";
+import type { UserConfig } from "@commitlint/types"
+import { RuleConfigSeverity } from "@commitlint/types"
 
 // https://commitlint.js.org/
 const config: UserConfig = {
@@ -8,6 +8,6 @@ const config: UserConfig = {
     "body-max-line-length": [RuleConfigSeverity.Disabled],
     "footer-max-line-length": [RuleConfigSeverity.Disabled],
   },
-};
+}
 
-export default config;
+export default config

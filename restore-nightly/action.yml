@@ -1,13 +1,12 @@
 ---
 name: "Restore a previously built pinned Yazi nightly"
 description: >-
-  Download and extract the pinned Yazi nightly artifact published by the companion `build-nightly`
-  action, adding `yazi` and `ya` to the `PATH` so jobs can use the pinned build without rebuilding
-  it.
+  Download and extract the pinned Yazi nightly artifact published by the companion `build-nightly` action, adding `yazi`
+  and `ya` to the `PATH` so jobs can use the pinned build without rebuilding it.
 
-  Because the artifact is build-local (see `build-nightly`), this is meant for other jobs of the
-  same workflow run. If no matching artifact exists, or the extracted Yazi does not report the
-  expected commit, the action fails loudly rather than silently testing the wrong build.
+  Because the artifact is build-local (see `build-nightly`), this is meant for other jobs of the same workflow run. If
+  no matching artifact exists, or the extracted Yazi does not report the expected commit, the action fails loudly rather
+  than silently testing the wrong build.
 
 inputs:
   artifact-name:
@@ -16,8 +15,8 @@ inputs:
     default: yazi-nightly
   commit:
     description:
-      "The expected https://github.com/sxyazi/yazi commit. The extracted Yazi is asserted to report
-      this commit, so a mismatched or stale artifact fails loudly instead of being tested silently."
+      "The expected https://github.com/sxyazi/yazi commit. The extracted Yazi is asserted to report this commit, so a
+      mismatched or stale artifact fails loudly instead of being tested silently."
     required: true
 
 outputs:
