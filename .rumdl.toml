@@ -25,6 +25,7 @@ disable = ["MD013", "MD033"]
 #    "README.md"
 # ]
 
+line-length = 120
 # List of file/directory patterns to exclude from linting
 exclude = [
   # Common directories to exclude

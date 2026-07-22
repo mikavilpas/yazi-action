@@ -3,20 +3,18 @@ name: "Build pinned Yazi nightly"
 description: >-
   Issue:
 
-  Yazi only ever publishes nightly under a single moving `nightly` tag whose old assets are deleted,
-  so it can't be pinned by tag.
+  Yazi only ever publishes nightly under a single moving `nightly` tag whose old assets are deleted, so it can't be
+  pinned by tag.
 
   Solution:
 
-  Build a specific Yazi commit from source (cached by commit) so the nightly version is locked and
-  cannot drift between CI runs. Renovate can be used to bump the nightly commit in a controlled
-  manner, allowing for reproducible builds.
+  Build a specific Yazi commit from source (cached by commit) so the nightly version is locked and cannot drift between
+  CI runs. Renovate can be used to bump the nightly commit in a controlled manner, allowing for reproducible builds.
 
-  Produces the `yazi` and `ya` executables and adds them to the `PATH` for subsequent steps in the
-  workflow.
+  Produces the `yazi` and `ya` executables and adds them to the `PATH` for subsequent steps in the workflow.
 
-  This action also uploads the build as a workflow artifact. Use the companion `restore-nightly`
-  action to download and extract it in other jobs of the same run, instead of rebuilding it there.
+  This action also uploads the build as a workflow artifact. Use the companion `restore-nightly` action to download and
+  extract it in other jobs of the same run, instead of rebuilding it there.
 
 inputs:
   commit:
