@@ -36,10 +36,9 @@ runs:
       env:
         ARTIFACT_NAME: ${{ inputs.artifact-name }}
         RUNNER_ARCH: ${{ runner.arch }}
+        RUNNER_TEMP: ${{ runner.temp }}
       run: |
-        # Must match the prefix used by `build-nightly` so the binaries land
-        # where they expect their relative paths to be.
-        echo "prefix=$HOME/.cargo-install/yazi-build" >> "$GITHUB_OUTPUT"
+        echo "prefix=${RUNNER_TEMP}/yazi-nightly" >> "$GITHUB_OUTPUT"
         echo "artifact-name=${ARTIFACT_NAME}-${RUNNER_ARCH}" >> "$GITHUB_OUTPUT"
 
     - name: Download pinned Yazi nightly

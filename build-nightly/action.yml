@@ -42,24 +42,55 @@ runs:
       env:
         ARTIFACT_NAME: ${{ inputs.artifact-name }}
         RUNNER_ARCH: ${{ runner.arch }}
+        RUNNER_TEMP: ${{ runner.temp }}
       run: |
-        # `baptiste0928/cargo-install` installs to `$HOME/.cargo-install/<crate>`
-        # (see its install.ts), so the `yazi-build` crate lands here.
-        echo "prefix=$HOME/.cargo-install/yazi-build" >> "$GITHUB_OUTPUT"
+        # build into a run-local prefix; binaries land at <prefix>/bin/{yazi,ya}.
+        echo "prefix=${RUNNER_TEMP}/yazi-nightly" >> "$GITHUB_OUTPUT"
+        echo "source=${RUNNER_TEMP}/yazi-src" >> "$GITHUB_OUTPUT"
         echo "artifact-name=${ARTIFACT_NAME}-${RUNNER_ARCH}" >> "$GITHUB_OUTPUT"
 
-    - name: Compile and install `yazi-fm` from source (cached)
-      uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3.4.0
+    - name: Restore cached Yazi build
+      id: cache
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
-        # The called action caches the compilation of yazi internally.
+        path: ${{ steps.config.outputs.prefix }}
+        key: yazi-nightly-v1-${{ runner.arch }}-${{ inputs.commit }}
+
+    - name: Clone Yazi at the pinned commit
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        YAZI_COMMIT: ${{ inputs.commit }}
+        SOURCE: ${{ steps.config.outputs.source }}
+      run: |
+        # Build according to the official instructions
+        # (https://yazi-rs.github.io/docs/installation/#source).
         #
-        # Due to Cargo's limitations, the `yazi-fm` and `yazi-cli` crates on
-        # crates.io must be built with `cargo install --force yazi-build`
-        # https://github.com/sxyazi/yazi/blob/2ec3a6c645324295331c0f2ef6d4d946cf11c06b/yazi-fm/build.rs?plain=1#L23-L25
-        crate: yazi-build
-        git: https://github.com/sxyazi/yazi
-        commit: ${{ inputs.commit }}
-        # tag: ${{ matrix.yazi-version.tag }}
+        # Cannot use `cargo install yazi-build` here because it uses the latest
+        # `main` and ignores the pinned rev. This means it cannot produce a
+        # reproducible, commit-pinned nightly (by design).
+        # https://github.com/sxyazi/yazi/blob/60d94608cb050f68c5ce85b7e236f0e5b121538d/yazi-build/build.rs#L47-L56
+        git clone --filter=blob:none https://github.com/sxyazi/yazi.git "$SOURCE"
+        git -C "$SOURCE" checkout --detach "$YAZI_COMMIT"
+
+    - name: Build Yazi from source
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        SOURCE: ${{ steps.config.outputs.source }}
+        YAZI_PREFIX: ${{ steps.config.outputs.prefix }}
+      run: |
+        cargo build --release --locked --manifest-path "$SOURCE/Cargo.toml"
+        mkdir -p "$YAZI_PREFIX/bin"
+        install -m 0755 "$SOURCE/target/release/yazi" "$YAZI_PREFIX/bin/yazi"
+        install -m 0755 "$SOURCE/target/release/ya" "$YAZI_PREFIX/bin/ya"
+
+    - name: Add Yazi nightly to PATH
+      shell: bash
+      env:
+        YAZI_PREFIX: ${{ steps.config.outputs.prefix }}
+      run: | # zizmor: ignore[github-env]
+        echo "$YAZI_PREFIX/bin" >> "$GITHUB_PATH"
 
     - name: Verify the pinned Yazi nightly
       id: verify
@@ -81,6 +112,14 @@ runs:
           exit 1
         }
         echo "short-commit=$short" >> "$GITHUB_OUTPUT"
+
+    - name: Save the verified Yazi build to the cache
+      # only cache a new build that was deemed ok in the above checks
+      if: ${{ success() && steps.cache.outputs.cache-hit != 'true' }}
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ steps.config.outputs.prefix }}
+        key: ${{ steps.cache.outputs.cache-primary-key }}
 
     - name: Package Yazi nightly
       shell: bash
