@@ -98,12 +98,58 @@ jobs:
           yazi --version | grep "$short"
           ya --version | grep "$short"
 
+  build-honors-pinned-commit:
+    # Regression test for the bug where `build-nightly` ignored the pinned
+    # commit and built the latest `main` instead: `yazi-build`'s build.rs
+    # clones `main` and never applies the requested rev. It would then fail in
+    # a version sanity check, blocking the build until the cache was manually
+    # revoked.
+    name: Regression - honors the pinned commit
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Resolve the parent of the pinned nightly commit
+        id: resolve
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # sxyazi/yazi is a public repo; the token only avoids rate limits.
+          parent="$(gh api "repos/sxyazi/yazi/commits/${YAZI_NIGHTLY_COMMIT}" --jq '.parents[0].sha')"
+          echo "Resolved parent of $YAZI_NIGHTLY_COMMIT -> $parent"
+          echo "commit=$parent" >> "$GITHUB_OUTPUT"
+      - name: Build the pinned parent Yazi nightly
+        uses: ./build-nightly
+        with:
+          commit: ${{ steps.resolve.outputs.commit }}
+          # Distinct name so this artifact does not clash with `build-nightly`.
+          artifact-name: yazi-nightly-regression
+      - name: Assert the built Yazi reports the pinned parent commit
+        env:
+          RESOLVED_COMMIT: ${{ steps.resolve.outputs.commit }}
+        run: |
+          short="$(printf '%s' "$RESOLVED_COMMIT" | cut -c1-7)"
+          yazi --version
+          ya --version
+          yazi --version | grep --quiet "$short" || {
+            echo "REGRESSION: built Yazi reports a different commit than the pinned $RESOLVED_COMMIT (looked for $short)."
+            exit 1
+          }
+          ya --version | grep --quiet "$short" || {
+            echo "REGRESSION: built Ya reports a different commit than the pinned $RESOLVED_COMMIT (looked for $short)."
+            exit 1
+          }
+
   ci:
     name: ci
     if: ${{ always() }}
     needs:
       - build-nightly
       - restore-nightly
+      - build-honors-pinned-commit
     runs-on: ubuntu-24.04
     permissions:
       contents: read
