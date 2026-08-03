@@ -33,7 +33,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Build pinned Yazi nightly
-        uses: ./build-nightly
+        uses: $/build-nightly
         id: build
         with:
           commit: ${{ env.YAZI_NIGHTLY_COMMIT }}
@@ -73,7 +73,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Restore pinned Yazi nightly
-        uses: ./restore-nightly
+        uses: $/restore-nightly
         id: restore
         with:
           commit: ${{ env.YAZI_NIGHTLY_COMMIT }}
@@ -122,7 +122,7 @@ jobs:
           echo "Resolved parent of $YAZI_NIGHTLY_COMMIT -> $parent"
           echo "commit=$parent" >> "$GITHUB_OUTPUT"
       - name: Build the pinned parent Yazi nightly
-        uses: ./build-nightly
+        uses: $/build-nightly
         with:
           commit: ${{ steps.resolve.outputs.commit }}
           # Distinct name so this artifact does not clash with `build-nightly`.
