@@ -143,6 +143,15 @@ jobs:
             exit 1
           }
 
+  actionlint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: actionlint
+        uses: kjanat/actionlint@08bb2c4f0d039744455b87aef1c647fb8b66d37b # v1.17.0
+
   ci:
     name: ci
     if: ${{ always() }}
@@ -150,6 +159,7 @@ jobs:
       - build-nightly
       - restore-nightly
       - build-honors-pinned-commit
+      - actionlint
     runs-on: ubuntu-26.04
     permissions:
       contents: read
