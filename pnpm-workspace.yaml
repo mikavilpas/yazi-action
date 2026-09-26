@@ -1,2 +1,1 @@
-minimumReleaseAgeExclude:
-  - "@mikavilpas/oxfmt-config@3.0.0"
+minimumReleaseAge: 4320 # 3 days, https://pnpm.io/settings/dependency-resolution#minimumreleaseage
