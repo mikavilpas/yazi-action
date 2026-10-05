@@ -1,0 +1,17 @@
+import mikaConfig from "@mikavilpas/oxlint-config"
+import { defineConfig } from "oxlint"
+
+export default defineConfig({
+  extends: [mikaConfig],
+  jsPlugins: [
+    // https://github.com/levibuzolic/eslint-plugin-no-only-tests#oxlint
+    "eslint-plugin-no-only-tests",
+  ],
+  env: {
+    builtin: true,
+    es2026: true,
+  },
+  rules: {
+    "no-only-tests/no-only-tests": "error",
+  },
+})
