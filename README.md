@@ -6,8 +6,8 @@ This repository provides reusable GitHub Actions related to Yazi. They can be us
 
 Supported operating systems and architectures for all actions:
 
-- [`ubuntu-24.04`](https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md) (x86_64)
-- [`ubuntu-24.04-arm`](https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Arm64-Readme.md)
+- [`ubuntu-26.04`](https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2604-Readme.md) (x86_64)
+- [`ubuntu-26.04-arm`](https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2604-Arm64-Readme.md)
   (arm64)
 
 Everything is tested on both architectures to maintain compatibility.
