@@ -73,6 +73,10 @@ runs:
         git clone --filter=blob:none https://github.com/sxyazi/yazi.git "$SOURCE"
         git -C "$SOURCE" checkout --detach "$YAZI_COMMIT"
 
+    - name: Setup sccache
+      if: steps.cache.outputs.cache-hit != 'true'
+      uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba # v0.0.11
+
     - name: Build Yazi from source
       if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
