@@ -84,6 +84,7 @@ runs:
         SOURCE: ${{ steps.config.outputs.source }}
         YAZI_PREFIX: ${{ steps.config.outputs.prefix }}
       run: |
+        rustup toolchain install stable --profile minimal
         cargo build --release --locked --manifest-path "$SOURCE/Cargo.toml"
         mkdir -p "$YAZI_PREFIX/bin"
         install -m 0755 "$SOURCE/target/release/yazi" "$YAZI_PREFIX/bin/yazi"
