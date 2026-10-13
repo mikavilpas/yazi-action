@@ -15,7 +15,7 @@
     "@commitlint/types": "21.2.3",
     "@mikavilpas/oxfmt-config": "3.0.3",
     "@mikavilpas/oxlint-config": "3.0.1",
-    "@types/node": "26.6.4",
+    "@types/node": "26.6.5",
     "eslint-plugin-no-only-tests": "3.4.0",
     "oxfmt": "0.72.0",
     "oxlint": "1.87.0",
@@ -25,7 +25,7 @@
   "devEngines": {
     "packageManager": {
       "name": "pnpm",
-      "version": "12.11.1",
+      "version": "12.11.2",
       "onFail": "download"
     }
   }
